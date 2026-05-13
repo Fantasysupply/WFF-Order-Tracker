@@ -7,6 +7,7 @@ from pathlib import Path
 
 from .analyzer import analyze_orders
 from .config import Settings, load_rules
+from .dingtalk import send_dingtalk_report
 from .mailer import send_report
 from .reporting import generate_excel_report
 from .tracking import build_tracking_client
@@ -19,6 +20,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Generate Wefulfil fulfillment exception reports.")
     parser.add_argument("--rules", type=Path, default=Path("config/rules.yaml"), help="Path to exception rule YAML file.")
     parser.add_argument("--no-email", action="store_true", help="Generate report without attempting to send email.")
+    parser.add_argument("--no-dingtalk", action="store_true", help="Generate report without attempting to notify DingTalk.")
     args = parser.parse_args()
 
     settings = Settings.load()
@@ -37,6 +39,9 @@ def main() -> None:
     print(f"Fetched orders: {len(orders)}")
     print(f"Exception records: {len(records)}")
     print(f"Report generated: {report_path}")
+
+    if not args.no_dingtalk:
+        send_dingtalk_report(settings, report_path, records)
 
     if not args.no_email:
         send_report(

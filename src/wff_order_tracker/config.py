@@ -22,6 +22,9 @@ class Settings:
     smtp_password: str = ""
     mail_from: str = ""
     mail_to: str = ""
+    dingtalk_webhook: str = ""
+    dingtalk_secret: str = ""
+    dingtalk_at_mobiles: str = ""
     report_output_dir: Path = Path("reports")
     dry_run: bool = True
 
@@ -42,6 +45,9 @@ class Settings:
             smtp_password=merged.get("SMTP_PASSWORD", ""),
             mail_from=merged.get("MAIL_FROM", ""),
             mail_to=merged.get("MAIL_TO", ""),
+            dingtalk_webhook=merged.get("DINGTALK_WEBHOOK", ""),
+            dingtalk_secret=merged.get("DINGTALK_SECRET", ""),
+            dingtalk_at_mobiles=merged.get("DINGTALK_AT_MOBILES", ""),
             report_output_dir=Path(merged.get("REPORT_OUTPUT_DIR", "reports")),
             dry_run=merged.get("DRY_RUN", "true").lower() in {"1", "true", "yes", "y"},
         )

@@ -13,6 +13,8 @@ DEFAULT_RULES: dict[str, Any] = {
     "delay_warning_buffer_days": 2,
     "customs_stale_days": 3,
     "delivery_stale_days": 2,
+    "waiting_pickup_stale_days": 2,
+    "super_delay_days_after_promise": 7,
 }
 
 
@@ -39,6 +41,37 @@ def analyze_orders(
 
         transit_days = max(0, (current_time - _ensure_aware(order.shipped_at)).days)
         days_since_update = _days_since_update(event, current_time)
+
+        if event and event.status == TrackingStatus.EXCEPTION:
+            records.append(_build_record(order, event, current_time, "物流平台标记异常", RiskLevel.HIGH, "立即联系物流商处理异常节点"))
+            continue
+
+        if event and event.status == TrackingStatus.DELIVERY_FAILED:
+            records.append(_build_record(order, event, current_time, "派送失败", RiskLevel.HIGH, "联系尾程物流确认失败原因，通知AM协调客户补充地址/电话或安排重派"))
+            continue
+
+        if event and event.status in {TrackingStatus.RETURNING, TrackingStatus.RETURNED}:
+            records.append(_build_record(order, event, current_time, "退件/退回风险", RiskLevel.HIGH, "确认退件原因与拦截可能性，通知AM同步客户处理方案"))
+            continue
+
+        if event and event.status == TrackingStatus.WAITING_PICKUP and days_since_update is not None:
+            if days_since_update >= int(active_rules["waiting_pickup_stale_days"]):
+                records.append(_build_record(order, event, current_time, "等待取件超时", RiskLevel.MEDIUM, "提醒AM通知客户尽快取件，必要时联系尾程确认保管期限"))
+                continue
+
+        super_delay_threshold = order.promised_delivery_days + int(active_rules["super_delay_days_after_promise"])
+        if transit_days > super_delay_threshold:
+            records.append(
+                _build_record(
+                    order,
+                    event,
+                    current_time,
+                    "超长延误",
+                    RiskLevel.HIGH,
+                    "升级物流商核查是否丢件/卡关/退回，并由履约负责人推动专项处理",
+                )
+            )
+            continue
 
         if transit_days > order.promised_delivery_days:
             records.append(
@@ -93,9 +126,6 @@ def analyze_orders(
                     _build_record(order, event, current_time, "派送节点停留过久", RiskLevel.MEDIUM, "联系尾程物流确认派送失败原因")
                 )
                 continue
-
-        if event and event.status == TrackingStatus.EXCEPTION:
-            records.append(_build_record(order, event, current_time, "物流平台标记异常", RiskLevel.HIGH, "立即联系物流商处理异常节点"))
 
     return records
 

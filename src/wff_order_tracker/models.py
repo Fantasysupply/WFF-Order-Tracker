@@ -16,6 +16,10 @@ class TrackingStatus(StrEnum):
     PICKED_UP = "picked_up"
     CUSTOMS = "customs"
     OUT_FOR_DELIVERY = "out_for_delivery"
+    WAITING_PICKUP = "waiting_pickup"
+    DELIVERY_FAILED = "delivery_failed"
+    RETURNING = "returning"
+    RETURNED = "returned"
     DELIVERED = "delivered"
     EXCEPTION = "exception"
 

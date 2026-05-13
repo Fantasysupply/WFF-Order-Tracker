@@ -3,3 +3,5 @@ stale_tracking_days: 5
 delay_warning_buffer_days: 2
 customs_stale_days: 3
 delivery_stale_days: 2
+waiting_pickup_stale_days: 2
+super_delay_days_after_promise: 7
