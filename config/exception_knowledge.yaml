@@ -1,0 +1,11 @@
+# 结构化知识库占位：拿到 51track 状态枚举后，把外部状态码映射到这些内部状态。
+status_mapping:
+  delivered: delivered
+  exception: exception
+  delivery_failed: delivery_failed
+  returning: returning
+  returned: returned
+  waiting_pickup: waiting_pickup
+  customs: customs
+  out_for_delivery: out_for_delivery
+  in_transit: in_transit
